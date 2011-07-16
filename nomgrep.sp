@@ -31,12 +31,104 @@ public Plugin:myinfo =
 #define MAPSTATUS_EXCLUDE_PREVIOUS (1<<3)
 #define MAPSTATUS_EXCLUDE_NOMINATED (1<<4)
 
+new Handle:g_MapList = INVALID_HANDLE;
+new g_mapFileSerial = -1;
+
 public OnPluginStart()
 {
 	RegConsoleCmd("say", Command_Say);
 	RegConsoleCmd("say_team", Command_Say);
 	RegConsoleCmd("sm_nomgrep", Command_Nomgrep);
 }
+
+/** OnConfigsExecuted
+ * Here until I figure out how to use nominations's g_maplist/menu
+ * Read from maplist.cfg to build a map list
+ */
+public OnConfigsExecuted()
+{
+	if (ReadMapList(g_MapList,
+					g_mapFileSerial,
+					"nominations",
+					MAPLIST_FLAG_CLEARARRAY|MAPLIST_FLAG_MAPSFOLDER)
+		== INVALID_HANDLE)
+	{
+		if (g_mapFileSerial == -1)
+		{
+			SetFailState("Unable to create a valid map list.");
+		}
+	}
+	
+	//BuildMapMenu();
+}
+
+/** BuildMapMenu
+ * Pulled from nominations until I find a way to get nomination's g_MapMenu/MapList
+ * Builds a map menu and map list off of g_MapList
+ * TODO is this even necisary?  Cane we just use map list?
+ */
+BuildMapMenu()
+{
+	if (g_MapMenu != INVALID_HANDLE)
+	{
+		CloseHandle(g_MapMenu);
+		g_MapMenu = INVALID_HANDLE;
+	}
+	
+	
+	g_MapMenu = CreateMenu(Handler_MapSelectMenu, MENU_ACTIONS_DEFAULT|MenuAction_DrawItem|MenuAction_DisplayItem);
+
+	decl String:map[64];
+	
+	new Handle:excludeMaps = INVALID_HANDLE;
+	decl String:currentMap[32];
+	
+	if (GetConVarBool(g_Cvar_ExcludeOld))
+	{	
+		excludeMaps = CreateArray(ByteCountToCells(33));
+		GetExcludeMapList(excludeMaps);
+	}
+	
+	if (GetConVarBool(g_Cvar_ExcludeCurrent))
+	{
+		GetCurrentMap(currentMap, sizeof(currentMap));
+	}
+	
+		
+	for (new i = 0; i < GetArraySize(g_MapList); i++)
+	{
+		new status = MAPSTATUS_ENABLED;
+		
+		GetArrayString(g_MapList, i, map, sizeof(map));
+		
+		if (GetConVarBool(g_Cvar_ExcludeCurrent))
+		{
+			if (StrEqual(map, currentMap))
+			{
+				status = MAPSTATUS_DISABLED|MAPSTATUS_EXCLUDE_CURRENT;
+			}
+		}
+		
+		/* Dont bother with this check if the current map check passed */
+		if (GetConVarBool(g_Cvar_ExcludeOld) && status == MAPSTATUS_ENABLED)
+		{
+			if (FindStringInArray(excludeMaps, map) != -1)
+			{
+				status = MAPSTATUS_DISABLED|MAPSTATUS_EXCLUDE_PREVIOUS;
+			}
+		}
+		
+		AddMenuItem(g_MapMenu, map, map);
+	}
+	
+	SetMenuExitButton(g_MapMenu, true);
+
+	if (excludeMaps != INVALID_HANDLE)
+	{
+		CloseHandle(excludeMaps);
+	}
+}
+
 
 public Action:Command_Nomgrep(client, args){
 	return Plugin_Continue;	
@@ -64,8 +156,11 @@ public Action:Command_Say(client, args){
 		PrintToChatAll("[SM] This is the list of nominations, or at least it will be");
 		callExternalTest();
 	}
-
-	PrintToChatAll("[SM] Hit");
+	
+	//TODO remove this test
+	if (strcmp(text[startidx], "nomgrep", false) == 0) {
+		mapSearch(client, "ba", g_MapList);
+	}
 
 
 	SetCmdReplySource(old);
@@ -98,23 +193,30 @@ public Handle:callExternalFunctions(){
 	return mapSearchedMenu;
 }
 
-public mapSearch(client, String:searchKey[64], Handle:g_MapList, Handle:g_MapMenu){
+/** mapSearch
+ * Perform a search for maps that contain a string searchKey in a given mapList
+ */
+public mapSearch(client, String:searchKey[64], Handle:mapList){
 	PrintToChatAll("[SM] TesterLoop"); //TODO remove this test
 	decl String:map[64];
 	new Handle:mapSearchedMenu =callExternalFunctions();
 
 	//Loop through each item in the map list
-	for (new i = 0; i < GetMenuItemCount(g_MapMenu); i++) {
-		GetMenuItem(g_MapMenu, i, map, sizeof(map));		
+	for (new i = 0; i < GetArraySize(mapList); i++) {
+		GetArrayString(mapList, i, map, sizeof(map));
+		PrintToChatAll("[SM] %s", map);
+		
+		//GetMenuItem(g_MapMenu, i, map, sizeof(map));		
 
 		//If this map matches the search key, add it to the menu
-		if(StrContains(map, searchKey, true) >= 0){
-			PrintToChatAll("[SM] %s", map);
-			AddMenuItem(mapSearchedMenu, map, map);
-		}
+		//if(StrContains(map, searchKey, true) >= 0){
+			//PrintToChatAll("[SM] %s", map);
+			//AddMenuItem(mapSearchedMenu, map, map);
+		//}
 	}
 
 	//Try and display this new menu
 	SetMenuTitle(mapSearchedMenu, "%t", "Nominate Title", client);
 	DisplayMenu(mapSearchedMenu, client, MENU_TIME_FOREVER);
 }
+
