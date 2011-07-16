@@ -62,73 +62,6 @@ public OnConfigsExecuted()
 	//BuildMapMenu();
 }
 
-/** BuildMapMenu
- * Pulled from nominations until I find a way to get nomination's g_MapMenu/MapList
- * Builds a map menu and map list off of g_MapList
- * TODO is this even necisary?  Cane we just use map list?
- */
-BuildMapMenu()
-{
-	if (g_MapMenu != INVALID_HANDLE)
-	{
-		CloseHandle(g_MapMenu);
-		g_MapMenu = INVALID_HANDLE;
-	}
-	
-	
-	g_MapMenu = CreateMenu(Handler_MapSelectMenu, MENU_ACTIONS_DEFAULT|MenuAction_DrawItem|MenuAction_DisplayItem);
-
-	decl String:map[64];
-	
-	new Handle:excludeMaps = INVALID_HANDLE;
-	decl String:currentMap[32];
-	
-	if (GetConVarBool(g_Cvar_ExcludeOld))
-	{	
-		excludeMaps = CreateArray(ByteCountToCells(33));
-		GetExcludeMapList(excludeMaps);
-	}
-	
-	if (GetConVarBool(g_Cvar_ExcludeCurrent))
-	{
-		GetCurrentMap(currentMap, sizeof(currentMap));
-	}
-	
-		
-	for (new i = 0; i < GetArraySize(g_MapList); i++)
-	{
-		new status = MAPSTATUS_ENABLED;
-		
-		GetArrayString(g_MapList, i, map, sizeof(map));
-		
-		if (GetConVarBool(g_Cvar_ExcludeCurrent))
-		{
-			if (StrEqual(map, currentMap))
-			{
-				status = MAPSTATUS_DISABLED|MAPSTATUS_EXCLUDE_CURRENT;
-			}
-		}
-		
-		/* Dont bother with this check if the current map check passed */
-		if (GetConVarBool(g_Cvar_ExcludeOld) && status == MAPSTATUS_ENABLED)
-		{
-			if (FindStringInArray(excludeMaps, map) != -1)
-			{
-				status = MAPSTATUS_DISABLED|MAPSTATUS_EXCLUDE_PREVIOUS;
-			}
-		}
-		
-		AddMenuItem(g_MapMenu, map, map);
-	}
-	
-	SetMenuExitButton(g_MapMenu, true);
-
-	if (excludeMaps != INVALID_HANDLE)
-	{
-		CloseHandle(excludeMaps);
-	}
-}
-
 
 public Action:Command_Nomgrep(client, args){
 	return Plugin_Continue;	
@@ -199,12 +132,13 @@ public Handle:callExternalFunctions(){
 public mapSearch(client, String:searchKey[64], Handle:mapList){
 	PrintToChatAll("[SM] TesterLoop"); //TODO remove this test
 	decl String:map[64];
-	new Handle:mapSearchedMenu =callExternalFunctions();
+	//new Handle:mapSearchedMenu =callExternalFunctions();
 
 	//Loop through each item in the map list
-	for (new i = 0; i < GetArraySize(mapList); i++) {
+	for (new i = 0; i < GetArraySize(g_MapList); i++) {
 		GetArrayString(mapList, i, map, sizeof(map));
 		PrintToChatAll("[SM] %s", map);
+		PrintToChatAll("[SM] end iteration %d", i); //TODO remove this test
 		
 		//GetMenuItem(g_MapMenu, i, map, sizeof(map));		
 
@@ -216,7 +150,7 @@ public mapSearch(client, String:searchKey[64], Handle:mapList){
 	}
 
 	//Try and display this new menu
-	SetMenuTitle(mapSearchedMenu, "%t", "Nominate Title", client);
-	DisplayMenu(mapSearchedMenu, client, MENU_TIME_FOREVER);
+	//SetMenuTitle(mapSearchedMenu, "%t", "Nominate Title", client);
+	//DisplayMenu(mapSearchedMenu, client, MENU_TIME_FOREVER);
 }
 
