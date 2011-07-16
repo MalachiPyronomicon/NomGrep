@@ -36,6 +36,9 @@ new g_mapFileSerial = -1;
 
 public OnPluginStart()
 {
+	new arraySize = ByteCountToCells(33);	
+	g_MapList = CreateArray(arraySize);
+
 	RegConsoleCmd("say", Command_Say);
 	RegConsoleCmd("say_team", Command_Say);
 	RegConsoleCmd("sm_nomgrep", Command_Nomgrep);
@@ -53,10 +56,13 @@ public OnConfigsExecuted()
 					MAPLIST_FLAG_CLEARARRAY|MAPLIST_FLAG_MAPSFOLDER)
 		== INVALID_HANDLE)
 	{
-		if (g_mapFileSerial == -1)
-		{
+		if (g_mapFileSerial == -1) {
 			SetFailState("Unable to create a valid map list.");
 		}
+	}else{
+		ServerCommand("say map loaded right");
+
+		ServerCommand("say size is %d", GetArraySize(g_MapList));
 	}
 	
 	//BuildMapMenu();
@@ -92,7 +98,7 @@ public Action:Command_Say(client, args){
 	
 	//TODO remove this test
 	if (strcmp(text[startidx], "nomgrep", false) == 0) {
-		mapSearch(client, "ba", g_MapList);
+		mapSearch(client, "ti", g_MapList);
 	}
 
 
@@ -130,27 +136,25 @@ public Handle:callExternalFunctions(){
  * Perform a search for maps that contain a string searchKey in a given mapList
  */
 public mapSearch(client, String:searchKey[64], Handle:mapList){
-	PrintToChatAll("[SM] TesterLoop"); //TODO remove this test
+	PrintToChatAll("[SM] 667<F7>"); //TODO remove this test
 	decl String:map[64];
-	//new Handle:mapSearchedMenu =callExternalFunctions();
+
+	//Create a handle to nominations's menu creation function
+	new Handle:mapSearchedMenu =callExternalFunctions();
 
 	//Loop through each item in the map list
 	for (new i = 0; i < GetArraySize(g_MapList); i++) {
 		GetArrayString(mapList, i, map, sizeof(map));
-		PrintToChatAll("[SM] %s", map);
-		PrintToChatAll("[SM] end iteration %d", i); //TODO remove this test
-		
-		//GetMenuItem(g_MapMenu, i, map, sizeof(map));		
 
 		//If this map matches the search key, add it to the menu
-		//if(StrContains(map, searchKey, true) >= 0){
-			//PrintToChatAll("[SM] %s", map);
-			//AddMenuItem(mapSearchedMenu, map, map);
-		//}
+		if(StrContains(map, searchKey, true) >= 0){
+			PrintToChatAll("[SM] %s", map);
+			AddMenuItem(mapSearchedMenu, map, map);
+		}
 	}
 
 	//Try and display this new menu
-	//SetMenuTitle(mapSearchedMenu, "%t", "Nominate Title", client);
-	//DisplayMenu(mapSearchedMenu, client, MENU_TIME_FOREVER);
+	SetMenuTitle(mapSearchedMenu, "%t", "Nominate Title", client);
+	DisplayMenu(mapSearchedMenu, client, MENU_TIME_FOREVER);
 }
 
