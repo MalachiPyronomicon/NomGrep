@@ -36,6 +36,9 @@ new g_mapFileSerial = -1;
 
 public OnPluginStart()
 {
+	LoadTranslations("common.phrases");
+	LoadTranslations("nominations.phrases");
+
 	new arraySize = ByteCountToCells(33);	
 	g_MapList = CreateArray(arraySize);
 
@@ -132,15 +135,39 @@ public Handle:callExternalFunctions(){
 	return mapSearchedMenu;
 }
 
+/** 
+ * Call Nomination's Handler_MapSelectMenu and get it's return value
+ */
+public nominationSelectMenuHandle(Handle:menu, MenuAction:action, param1, param2) {
+	new Handle:nominations = FindPluginByFile("nominations.smx");
+	new Function:Handler_MapSelectMenu = GetFunctionByName(nominations, "Handler_MapSelectMenu");
+
+	decl result;
+
+	/* Start function call */
+	Call_StartFunction(nominations, Handler_MapSelectMenu);
+
+	/* Push parameters one at a time */
+	Call_PushCell(menu);
+	Call_PushCell(action);
+	Call_PushCell(param1);
+	Call_PushCell(param2);
+
+	/* Finish the call, get the result */
+	Call_Finish(result);
+	
+	return result;
+}
+
 /** mapSearch
  * Perform a search for maps that contain a string searchKey in a given mapList
  */
 public mapSearch(client, String:searchKey[64], Handle:mapList){
-	PrintToChatAll("[SM] 667<F7>"); //TODO remove this test
+	PrintToChatAll("[SM] ddde3<F2>"); //TODO remove this test
 	decl String:map[64];
 
 	//Create a handle to nominations's menu creation function
-	new Handle:mapSearchedMenu =callExternalFunctions();
+	new Handle:mapSearchedMenu =CreateMenu(nominationSelectMenuHandle, MENU_ACTIONS_DEFAULT|MenuAction_DrawItem|MenuAction_DisplayItem);
 
 	//Loop through each item in the map list
 	for (new i = 0; i < GetArraySize(g_MapList); i++) {
@@ -150,6 +177,10 @@ public mapSearch(client, String:searchKey[64], Handle:mapList){
 		if(StrContains(map, searchKey, true) >= 0){
 			PrintToChatAll("[SM] %s", map);
 			AddMenuItem(mapSearchedMenu, map, map);
+
+			//TODO REMOVE THIS TEST
+			//GetMenuItem(mapSearchedMenu, i, map, sizeof(map));
+			//PrintToChatAll("[SM]: %s:", map);
 		}
 	}
 
