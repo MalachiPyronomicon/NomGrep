@@ -18,7 +18,6 @@ public OnPluginStart() {
 	RegConsoleCmd("say", Command_Say);
 	RegConsoleCmd("say_team", Command_Say);
 
-jaaa	
 	sm_myslap_damage = CreateConVar("sm_myslap_damage", "55", "Default slap damage");
 	AutoExecConfig(true, "plugin_myslapQ");
 }
@@ -26,7 +25,6 @@ jaaa
 public Action:Command_Say(client, args) {
 	if (!client)
 	{
-		jjaa
 		return Plugin_Continue;
 	}
 
