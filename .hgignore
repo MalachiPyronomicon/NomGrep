@@ -1,0 +1,6 @@
+#Ignore Vim's backup files
+syntax: glob
+
+*.swp
+*.swo
+*~
