@@ -25,11 +25,9 @@ public Plugin:myinfo =
 };
 
 
-#define MAPSTATUS_ENABLED (1<<0)
-#define MAPSTATUS_DISABLED (1<<1)
-#define MAPSTATUS_EXCLUDE_CURRENT (1<<2)
-#define MAPSTATUS_EXCLUDE_PREVIOUS (1<<3)
-#define MAPSTATUS_EXCLUDE_NOMINATED (1<<4)
+#define MAPSEARCH_FOUND (1<<0)
+#define MAPSEARCH_FOUND_ONE (1<<1)
+#define MAPSEARCH_FOUND_NONE (1<<2)
 
 new Handle:g_MapList = INVALID_HANDLE;
 new g_mapFileSerial = -1;
@@ -42,8 +40,7 @@ public OnPluginStart()
 	new arraySize = ByteCountToCells(33);	
 	g_MapList = CreateArray(arraySize);
 
-	RegConsoleCmd("say", Command_Say);
-	RegConsoleCmd("say_team", Command_Say);
+	RegConsoleCmd("sm_nomsearch", Command_Nomsearch);
 	RegConsoleCmd("sm_nomgrep", Command_Nomgrep);
 }
 
@@ -72,67 +69,33 @@ public OnConfigsExecuted()
 }
 
 
+public Action:Command_Nomsearch(client, args){
+	Command_Nomgrep(client, args);
+	return Plugin_Continue;	
+}
 public Action:Command_Nomgrep(client, args){
-	return Plugin_Continue;	
-}
-public Action:Command_Say(client, args){
 	if (!client) {
-		return Plugin_Continue;
-	}
-
-	decl String:text[192];
-	if (!GetCmdArgString(text, sizeof(text))) {
-		return Plugin_Continue;
+		return Plugin_Handled;
 	}
 	
-	new startidx = 0;
-	if(text[strlen(text)-1] == '"') {
-		text[strlen(text)-1] = '\0';
-		startidx = 1;
+	if (args == 0) {
+		ReplyToCommand(client, "[SM] You did not include a search key");
+		return Plugin_Handled;
 	}
 	
-	new ReplySource:old = SetCmdReplySource(SM_REPLY_TO_CHAT);
-
-	//TODO remove this test
-	if (strcmp(text[startidx], "noms", false) == 0) {
-		PrintToChatAll("[SM] This is the list of nominations, or at least it will be");
-		callExternalTest();
+	decl String:searchKey[64];
+	GetCmdArg(1, searchKey, sizeof(searchKey));
+	
+	
+	new result = mapSearch(client, searchKey, g_MapList);
+	
+	//If no matches were found
+	if (result == MAPSEARCH_FOUND_NONE) {
+		ReplyToCommand(client, "[SM] No maps were found matching '%s'", searchKey);
+		return Plugin_Handled;	
 	}
 	
-	//TODO remove this test
-	if (strcmp(text[startidx], "nomgrep", false) == 0) {
-		mapSearch(client, "ti", g_MapList);
-	}
-
-
-	SetCmdReplySource(old);
 	return Plugin_Continue;	
-}
-
-public Handle:callExternalTest(){
-	new Handle:firstplugin = FindPluginByFile("firstplugin.smx");
-	new Function:testMethodForward = GetFunctionByName(firstplugin, "testMethodForward");
-	//new Handle:mapSearchedMenu = CreateMenu(Handler_MapSelectMenu, MENU_ACTIONS_DEFAULT|MenuAction_DrawItem|MenuAction_DisplayItem);
-	new String:result;
-
-	PrintToChatAll("[SM] Hit: |%s| it works! ", result);
-	// Start function call
-	Call_StartFunction(firstplugin, testMethodForward);
-
-	// Push parameters one at a time
-	Call_PushString("Waaaaaa");
-	Call_PushCell(231);
-
-	// Finish the call, get the result
-	Call_Finish(result);
-	PrintToChatAll("[SM] Hit: |%s| it works! ", result);
-	return INVALID_HANDLE;
-}
-public Handle:callExternalFunctions(){
-	new Handle:nominations = FindPluginByFile("nominations.smx");
-	new Function:Handler_MapSelectMenu = GetFunctionByName(nominations, "Handler_MapSelectMenu");
-	new Handle:mapSearchedMenu = CreateMenu(Handler_MapSelectMenu, MENU_ACTIONS_DEFAULT|MenuAction_DrawItem|MenuAction_DisplayItem);
-	return mapSearchedMenu;
 }
 
 /** 
@@ -163,7 +126,6 @@ public nominationSelectMenuHandle(Handle:menu, MenuAction:action, param1, param2
  * Perform a search for maps that contain a string searchKey in a given mapList
  */
 public mapSearch(client, String:searchKey[64], Handle:mapList){
-	PrintToChatAll("[SM] ddde3<F2>"); //TODO remove this test
 	decl String:map[64];
 
 	//Create a handle to nominations's menu creation function
@@ -177,15 +139,21 @@ public mapSearch(client, String:searchKey[64], Handle:mapList){
 		if(StrContains(map, searchKey, true) >= 0){
 			PrintToChatAll("[SM] %s", map);
 			AddMenuItem(mapSearchedMenu, map, map);
-
-			//TODO REMOVE THIS TEST
-			//GetMenuItem(mapSearchedMenu, i, map, sizeof(map));
-			//PrintToChatAll("[SM]: %s:", map);
 		}
 	}
 
+
+	//If no maps were found don't even bother displaying a menu
+	if(GetMenuItemCount(mapSearchedMenu) <=0){
+		return MAPSEARCH_FOUND_NONE;
+	}
+
+	//TODO what if only one map was found?  Display only one result?
+	
 	//Try and display this new menu
 	SetMenuTitle(mapSearchedMenu, "%t", "Nominate Title", client);
 	DisplayMenu(mapSearchedMenu, client, MENU_TIME_FOREVER);
+
+	return MAPSEARCH_FOUND;
 }
 
