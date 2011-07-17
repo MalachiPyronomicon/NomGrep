@@ -43,7 +43,7 @@ public OnPluginStart()
 	new arraySize = ByteCountToCells(33);	
 	g_MapList = CreateArray(arraySize);
 
-	RegConsoleCmd("sm_nomsearch", Command_Nomsearch);
+	RegConsoleCmd("sm_nomsearch", Command_Nomgrep);
 	RegConsoleCmd("sm_nomgrep", Command_Nomgrep);
 }
 
@@ -66,19 +66,13 @@ public OnConfigsExecuted()
 }
 
 
-public Action:Command_Nomsearch(client, args){
-	//Same as Nomgrep so just pass on through
-	Command_Nomgrep(client, args);
-	return Plugin_Continue;	
-}
-
 public Action:Command_Nomgrep(client, args){
 	if (!client) {
 		return Plugin_Handled;
 	}
 	
 	if (args == 0) {
-		ReplyToCommand(client, "[SM] You did not include a search key");
+		ReplyToCommand(client, "[SM] Incorrect Syntax:  !nomsearch <searchstring>");
 		return Plugin_Handled;
 	}
 	
@@ -118,9 +112,6 @@ public nominationSelectMenuHandle(Handle:menu, MenuAction:action, param1, param2
 	// Finish the call, get the result
 	Call_Finish(result);
 
-	//Cleanup
-	CloseHandle(nominations);
-	
 	return result;
 }
 
@@ -158,10 +149,6 @@ public mapSearch(client, String:searchKey[64], Handle:mapList){
 	//Try and display this new menu
 	SetMenuTitle(mapSearchedMenu, "%t", "Nominate Title", client);
 	DisplayMenu(mapSearchedMenu, client, MENU_TIME_FOREVER);
-
-
-	//Cleanup
-	CloseHandle(mapSearchedMenu);
 
 	return MAPSEARCH_FOUND;
 }
