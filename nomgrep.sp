@@ -10,7 +10,6 @@
  * =============================================================================
  *
  *
- * Version: $Id$
  */
 
 #include <sourcemod>
@@ -23,8 +22,7 @@ public Plugin:myinfo =
 	name = "Nomination Grep",
 	author = "Billehs",
 	description = "Provides Map Nominations based on a given search key",
-	version = SOURCEMOD_VERSION,
-	url = "http://www.sourcemod.net/"
+	url = "https://bitbucket.org/CrimsonTautology/nomgrep"
 };
 
 
