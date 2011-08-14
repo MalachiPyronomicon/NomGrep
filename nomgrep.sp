@@ -130,7 +130,7 @@ public mapSearch(client, String:searchKey[64], Handle:mapList){
 		GetArrayString(mapList, i, map, sizeof(map));
 
 		//If this map matches the search key, add it to the menu
-		if(StrContains(map, searchKey, true) >= 0){
+		if(StrContains(map, searchKey, false) >= 0){
 			AddMenuItem(mapSearchedMenu, map, map);
 		}
 	}
