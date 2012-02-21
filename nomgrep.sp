@@ -121,10 +121,6 @@ public mapSearch(client, String:searchKey[64], Handle:mapList){
 	//Create a handle to nominations's menu creation function
 	new Handle:mapSearchedMenu =CreateMenu(nominationSelectMenuHandle, MENU_ACTIONS_DEFAULT|MenuAction_DrawItem|MenuAction_DisplayItem);
 	
-	//Compile a regular expression from our searchKey
-	//new Handle:searchRegex = CompileRegex(searchKey);
-	
-
 	//Loop through each item in the map list
 	for (new i = 0; i < GetArraySize(g_MapList); i++) {
 		GetArrayString(mapList, i, map, sizeof(map));
