@@ -8,7 +8,7 @@ Simply compile with the command
 
 > spcomp nomgrep.sp
 
-and put the compiled .smx file in your "<mod>/addons/sourcemod/plugins"
+and put the compiled .smx file in your "[modname]/addons/sourcemod/plugins"
 directory.
 
 Also make sure you have both the nominations and rtv plugins enabled on your server otherwise this plugin won't be of much use
@@ -18,7 +18,7 @@ USAGE:
 ------
 When on a server with nomgrep enabled simply type into chat:
 
-> !nomgrep <searchkey>
+> !nomgrep [searchkey]
 
 And a list of maps that have "searchkey" in their name will be displayed.
 
