@@ -21,22 +21,19 @@ public Plugin:myinfo =
 	name = "Nomination Grep",
 	author = "Billehs",
 	description = "Provides Map Nominations based on a given search key",
-	url = "https://bitbucket.org/CrimsonTautology/nomgrep"
+	url = "https://github.com/CrimsonTautology/nomgrep"
 };
 
 
-#define MAPSEARCH_FOUND (1<<0)
-#define MAPSEARCH_FOUND_ONE (1<<1)
-#define MAPSEARCH_FOUND_NONE (1<<2)
+#define MAPSEARCH_FOUND 0
+#define MAPSEARCH_FOUND_ONE 1
+#define MAPSEARCH_FOUND_NONE 2
 
 new Handle:g_MapList = INVALID_HANDLE;
 new g_mapFileSerial = -1;
 
 public OnPluginStart()
 {
-	LoadTranslations("common.phrases");
-	LoadTranslations("nominations.phrases");
-
 	new arraySize = ByteCountToCells(33);	
 	g_MapList = CreateArray(arraySize);
 
@@ -137,8 +134,6 @@ public mapSearch(client, String:searchKey[64], Handle:mapList){
 		return MAPSEARCH_FOUND_NONE;
 	}
 
-	//TODO what if only one map was found?  Display only one result?
-	
 	//Try and display this new menu
 	SetMenuTitle(mapSearchedMenu, "%t", "Nominate Title", client);
 	DisplayMenu(mapSearchedMenu, client, MENU_TIME_FOREVER);
