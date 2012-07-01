@@ -34,6 +34,9 @@ new g_mapFileSerial = -1;
 
 public OnPluginStart()
 {
+	LoadTranslations("common.phrases");
+	LoadTranslations("nominations.phrases");
+
 	new arraySize = ByteCountToCells(33);	
 	g_MapList = CreateArray(arraySize);
 
@@ -48,10 +51,10 @@ public OnPluginStart()
 public OnConfigsExecuted()
 {
 	if (ReadMapList(g_MapList,
-					g_mapFileSerial,
-					"nominations",
-					MAPLIST_FLAG_CLEARARRAY|MAPLIST_FLAG_MAPSFOLDER)
-		== INVALID_HANDLE)
+				g_mapFileSerial,
+				"nominations",
+				MAPLIST_FLAG_CLEARARRAY|MAPLIST_FLAG_MAPSFOLDER)
+			== INVALID_HANDLE)
 	{
 		if (g_mapFileSerial == -1) {
 			SetFailState("Unable to create a valid map list.");
@@ -64,24 +67,24 @@ public Action:Command_Nomgrep(client, args){
 	if (!client) {
 		return Plugin_Handled;
 	}
-	
+
 	if (args == 0) {
 		ReplyToCommand(client, "[SM] Incorrect Syntax:  !nomsearch <searchstring>");
 		return Plugin_Handled;
 	}
-	
+
 	decl String:searchKey[64];
 	GetCmdArg(1, searchKey, sizeof(searchKey));
-	
-	
+
+
 	new result = mapSearch(client, searchKey, g_MapList);
-	
+
 	//If no matches were found
 	if (result == MAPSEARCH_FOUND_NONE) {
 		ReplyToCommand(client, "[SM] No maps were found matching '%s'", searchKey);
 		return Plugin_Handled;	
 	}
-	
+
 	return Plugin_Continue;	
 }
 
@@ -117,7 +120,7 @@ public mapSearch(client, String:searchKey[64], Handle:mapList){
 
 	//Create a handle to nominations's menu creation function
 	new Handle:mapSearchedMenu =CreateMenu(nominationSelectMenuHandle, MENU_ACTIONS_DEFAULT|MenuAction_DrawItem|MenuAction_DisplayItem);
-	
+
 	//Loop through each item in the map list
 	for (new i = 0; i < GetArraySize(g_MapList); i++) {
 		GetArrayString(mapList, i, map, sizeof(map));
