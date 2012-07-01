@@ -69,7 +69,7 @@ public Action:Command_Nomgrep(client, args){
 	}
 
 	if (args == 0) {
-		ReplyToCommand(client, "[SM] Incorrect Syntax:  !nomsearch <searchstring>");
+		ReplyToCommand(client, "[SM] Nomgrep Incorrect Syntax:  !nomsearch <searchstring>");
 		return Plugin_Handled;
 	}
 
