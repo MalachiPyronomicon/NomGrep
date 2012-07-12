@@ -69,7 +69,7 @@ public OnAllPluginsLoaded(){
 	g_nominations = FindPluginByFile("nominations.smx");
 
 	//Check if nominations.smx is both available and currently running
-	if(g_nominations != INVALID_HANDLE || GetPluginStatus(g_nominations) != Plugin_Running){
+	if(g_nominations == INVALID_HANDLE || GetPluginStatus(g_nominations) != Plugin_Running){
 		SetFailState("[nomgrep] Error, nominations is currently not running");
 	}
 	else{
