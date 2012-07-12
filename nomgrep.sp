@@ -31,6 +31,9 @@ public Plugin:myinfo =
 
 new Handle:g_MapList = INVALID_HANDLE;
 new g_mapFileSerial = -1;
+new Handle:g_nominations = INVALID_HANDLE;
+new Function:g_Handler_MapSelectMenu = INVALID_FUNCTION;
+
 
 public OnPluginStart()
 {
@@ -59,6 +62,19 @@ public OnConfigsExecuted()
 		if (g_mapFileSerial == -1) {
 			SetFailState("Unable to create a valid map list.");
 		}
+	}
+}
+
+public OnAllPluginsLoaded(){
+	g_nominations = FindPluginByFile("nominations.smx");
+
+	//Check if nominations.smx is both available and currently running
+	if(g_nominations != INVALID_HANDLE || GetPluginStatus(g_nominations) != Plugin_Running){
+		SetFailState("[nomgrep] Error, nominations is currently not running");
+	}
+	else{
+		//We should be clear to link the MapSelectMenu function
+		g_Handler_MapSelectMenu = GetFunctionByName(g_nominations, "Handler_MapSelectMenu");
 	}
 }
 
@@ -92,13 +108,11 @@ public Action:Command_Nomgrep(client, args){
  * Call Nomination's Handler_MapSelectMenu and get it's return value
  */
 public nominationSelectMenuHandle(Handle:menu, MenuAction:action, param1, param2) {
-	new Handle:nominations = FindPluginByFile("nominations.smx");
-	new Function:Handler_MapSelectMenu = GetFunctionByName(nominations, "Handler_MapSelectMenu");
 
 	decl result;
 
 	// Start function call
-	Call_StartFunction(nominations, Handler_MapSelectMenu);
+	Call_StartFunction(g_nominations, g_Handler_MapSelectMenu);
 
 	// Push parameters one at a time
 	Call_PushCell(menu);
