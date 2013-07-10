@@ -20,7 +20,7 @@ public Plugin:myinfo =
 {
 	name = "Nomination Grep",
 	author = "Billehs",
-	version = "2.1",
+	version = "2.1a",
 	description = "Provides Map Nominations based on a given search key",
 	url = "https://github.com/CrimsonTautology/nomgrep"
 };
@@ -72,10 +72,23 @@ public OnAllPluginsLoaded(){
 	g_nominations = FindPluginByFile("nominations.smx");
 
 	//Check if nominations.smx is both available and currently running
-	if(g_nominations == INVALID_HANDLE || GetPluginStatus(g_nominations) != Plugin_Running){
-		SetFailState("[nomgrep] Error, nominations is currently not running");
+	if(g_nominations == INVALID_HANDLE || GetPluginStatus(g_nominations) != Plugin_Running)
+	{
+		g_nominations = FindPluginByFile("custom/nominations-qp.smx");
+
+		//Check if nominations-qp.smx is both available and currently running
+		if(g_nominations == INVALID_HANDLE || GetPluginStatus(g_nominations) != Plugin_Running)
+		{
+			SetFailState("[nomgrep] Error, nominations is currently not running");
+		}
+		else
+		{
+			//We should be clear to link the MapSelectMenu function
+			g_Handler_MapSelectMenu = GetFunctionByName(g_nominations, "Handler_MapSelectMenu");
+		}
 	}
-	else{
+	else
+	{
 		//We should be clear to link the MapSelectMenu function
 		g_Handler_MapSelectMenu = GetFunctionByName(g_nominations, "Handler_MapSelectMenu");
 	}
